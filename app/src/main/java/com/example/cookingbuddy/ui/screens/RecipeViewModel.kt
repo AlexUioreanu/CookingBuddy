@@ -1,7 +1,6 @@
 package com.example.cookingbuddy.ui.screens
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.cookingbuddy.R
 import com.example.cookingbuddy.domain.model.Recipe
 import com.example.cookingbuddy.domain.usecase.AddFavoriteUseCase
@@ -9,10 +8,7 @@ import com.example.cookingbuddy.domain.usecase.GetFavoritesUseCase
 import com.example.cookingbuddy.domain.usecase.GetRecipesUseCase
 import com.example.cookingbuddy.domain.usecase.RemoveFavoriteUseCase
 import com.example.cookingbuddy.ui.utils.ResourcesProvider
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 
@@ -27,7 +23,7 @@ data class RecipeState(
 )
 
 class RecipeViewModel(
-    getFavoritesUseCase: GetFavoritesUseCase,
+    private val getFavoritesUseCase: GetFavoritesUseCase,
     private val getRecipesUseCase: GetRecipesUseCase,
     private val addFavoriteUseCase: AddFavoriteUseCase,
     private val removeFavoriteUseCase: RemoveFavoriteUseCase,
@@ -36,19 +32,12 @@ class RecipeViewModel(
 
     override val container = container<RecipeState, RecipeSideEffect>(RecipeState())
 
-    private val favoritesUiState: StateFlow<List<Recipe>> = getFavoritesUseCase()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
     init {
         observeFavorites()
     }
 
     private fun observeFavorites() = intent {
-        favoritesUiState.collectLatest { favoriteRecipes ->
+        getFavoritesUseCase().collectLatest { favoriteRecipes ->
             reduce {
                 state.copy(
                     favorites = favoriteRecipes,

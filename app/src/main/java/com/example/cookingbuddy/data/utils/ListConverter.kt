@@ -1,4 +1,4 @@
-package com.example.cookingbuddy.data.local
+package com.example.cookingbuddy.data.utils
 
 import android.util.Log
 import androidx.room.TypeConverter

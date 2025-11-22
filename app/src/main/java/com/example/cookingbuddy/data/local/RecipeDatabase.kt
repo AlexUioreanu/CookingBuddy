@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.cookingbuddy.data.local.model.RecipeEntity
+import com.example.cookingbuddy.data.utils.ListConverter
 
 @Database(entities = [RecipeEntity::class], version = 1, exportSchema = false)
 @TypeConverters(ListConverter::class)

@@ -40,13 +40,18 @@ class RecipeViewModel(
             reduce {
                 val updatedRecipes = state.recipes.syncFavoritesStatus(favoriteRecipes)
 
-                val shouldShowFavorites = state.query.isEmpty() || state.showFavorites
+                val favoriteIds = favoriteRecipes.map { it.id }.toSet()
+
+                val updatedSelectedRecipe = state.selectedRecipe?.let { current ->
+                    current.copy(isFavorite = current.id in favoriteIds)
+                }
 
                 state.copy(
                     favorites = favoriteRecipes,
                     recipes = updatedRecipes,
+                    selectedRecipe = updatedSelectedRecipe,
                     loading = false,
-                    showFavorites = shouldShowFavorites
+                    showFavorites = state.query.isEmpty() || state.showFavorites
                 )
             }
         }
@@ -106,6 +111,10 @@ class RecipeViewModel(
         } else {
             addFavoriteUseCase(recipe)
         }
+    }
+
+    fun onDetailsBackClicked() = intent {
+        reduce { state.copy(selectedRecipe = null) }
     }
 
     private fun List<Recipe>.syncFavoritesStatus(favorites: List<Recipe>): List<Recipe> {

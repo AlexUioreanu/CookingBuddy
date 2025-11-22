@@ -58,10 +58,13 @@ fun RecipeDetailScreen(
     Content(
         recipe = recipe,
         isFavorite = recipe.isFavorite,
-        onBack = onBack,
+        onBack = {
+            viewModel.onDetailsBackClicked()
+            onBack()
+        },
         onToggleFavorite = {
             viewModel.onFavoriteClicked(recipe, recipe.isFavorite)
-        }
+        },
     )
 }
 

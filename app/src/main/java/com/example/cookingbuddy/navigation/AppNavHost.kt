@@ -20,7 +20,7 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavigationRoute.RecipeGraph,
+        startDestination = RecipeGraph,
         modifier = modifier
     ) {
         recipeGraph(navController)
@@ -28,16 +28,14 @@ fun AppNavHost(
 }
 
 fun NavGraphBuilder.recipeGraph(navController: NavHostController) {
-    navigation<NavigationRoute.RecipeGraph>(
+    navigation<RecipeGraph>(
         startDestination = NavigationRoute.Home
     ) {
         composable<NavigationRoute.Home> { backStackEntry ->
-            val graphEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(NavigationRoute.RecipeGraph)
-            }
-            val recipeViewModel: RecipeViewModel = koinViewModel(viewModelStoreOwner = graphEntry)
+            val viewModel = sharedViewModel<RecipeViewModel>(navController, backStackEntry)
+
             HomeScreen(
-                viewModel = recipeViewModel,
+                viewModel = viewModel,
                 onRecipeClick = {
                     navController.navigate(NavigationRoute.Detail)
                 }
@@ -45,16 +43,23 @@ fun NavGraphBuilder.recipeGraph(navController: NavHostController) {
         }
 
         composable<NavigationRoute.Detail> { backStackEntry ->
-            val graphEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(NavigationRoute.RecipeGraph)
-            }
-
-            val recipeViewModel: RecipeViewModel = koinViewModel(viewModelStoreOwner = graphEntry)
+            val viewModel = sharedViewModel<RecipeViewModel>(navController, backStackEntry)
 
             RecipeDetailScreen(
-                viewModel = recipeViewModel,
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
     }
+}
+
+@Composable
+private inline fun <reified T : androidx.lifecycle.ViewModel> sharedViewModel(
+    navController: NavHostController,
+    currentEntry: androidx.navigation.NavBackStackEntry
+): T {
+    val parentEntry = remember(currentEntry) {
+        navController.getBackStackEntry(RecipeGraph)
+    }
+    return koinViewModel(viewModelStoreOwner = parentEntry)
 }

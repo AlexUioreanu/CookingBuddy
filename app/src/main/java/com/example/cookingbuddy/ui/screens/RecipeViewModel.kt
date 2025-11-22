@@ -34,6 +34,7 @@ class RecipeViewModel(
     init {
         observeFavorites()
     }
+
     private fun observeFavorites() = intent {
         getFavoritesUseCase().collectLatest { favoriteRecipes ->
             reduce {
@@ -98,6 +99,7 @@ class RecipeViewModel(
     fun onRecipeSelected(recipe: Recipe) = intent {
         reduce { state.copy(selectedRecipe = recipe) }
     }
+
     fun onFavoriteClicked(recipe: Recipe, isFavorite: Boolean) = intent {
         if (isFavorite) {
             removeFavoriteUseCase(recipe.id)

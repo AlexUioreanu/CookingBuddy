@@ -138,7 +138,8 @@ private fun RecipeListItemPreview() {
             "Drain water and mix with sauce."
         ),
         imageUrl = "",
-        duration = "20 min"
+        duration = "20 min",
+        isFavorite = true
     )
     CookingBuddyTheme {
         Column(

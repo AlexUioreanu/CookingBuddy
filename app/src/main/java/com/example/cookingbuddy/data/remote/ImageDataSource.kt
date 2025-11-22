@@ -44,7 +44,7 @@ class FalImageDataSource(
             okHttpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     Log.e("FalAI", "Failed: ${response.code}")
-                    return BuildConfig.LOREM_FLICKR_URL // Fallback
+                    return BuildConfig.LOREM_FLICKR_URL
                 }
                 val responseBody = response.body?.string() ?: return ""
                 val falResponse = jsonParser.decodeFromString<FalResponse>(responseBody)

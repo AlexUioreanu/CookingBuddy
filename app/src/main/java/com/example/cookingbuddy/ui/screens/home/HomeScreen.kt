@@ -52,7 +52,6 @@ fun HomeScreen(
         showFavorites = uiState.showFavorites,
         recipes = uiState.recipes,
         favorites = uiState.favorites,
-        favoriteIds = uiState.favoriteIds,
         onQueryChange = viewModel::onQueryChanged,
         onSearch = {
             focusManager.clearFocus()
@@ -75,7 +74,6 @@ private fun Content(
     showFavorites: Boolean,
     recipes: List<Recipe>,
     favorites: List<Recipe>,
-    favoriteIds: Set<Int>,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onRecipeClick: (Recipe) -> Unit,
@@ -99,7 +97,6 @@ private fun Content(
                 showFavorites = showFavorites,
                 favorites = favorites,
                 recipes = recipes,
-                favoriteIds = favoriteIds,
                 onRecipeClick = onRecipeClick,
                 onToggleFavorite = onToggleFavorite,
                 onSearch = onSearch
@@ -113,7 +110,6 @@ private fun RecipeListContent(
     showFavorites: Boolean,
     favorites: List<Recipe>,
     recipes: List<Recipe>,
-    favoriteIds: Set<Int>,
     onRecipeClick: (Recipe) -> Unit,
     onToggleFavorite: (Recipe, Boolean) -> Unit,
     onSearch: () -> Unit
@@ -134,7 +130,6 @@ private fun RecipeListContent(
         } else {
             suggestionsSection(
                 recipes = recipes,
-                favoriteIds = favoriteIds,
                 onRecipeClick = onRecipeClick,
                 onToggleFavorite = onToggleFavorite,
                 onNewSuggestions = onSearch
@@ -170,7 +165,6 @@ private fun LazyListScope.favoritesSection(
 
 private fun LazyListScope.suggestionsSection(
     recipes: List<Recipe>,
-    favoriteIds: Set<Int>,
     onRecipeClick: (Recipe) -> Unit,
     onToggleFavorite: (Recipe, Boolean) -> Unit,
     onNewSuggestions: () -> Unit
@@ -185,12 +179,10 @@ private fun LazyListScope.suggestionsSection(
         }
 
         items(recipes, key = { it.id }) { recipe ->
-            val isFavorite = recipe.id in favoriteIds
-
             RecipeListItem(
                 recipe = recipe,
-                isFavorite = isFavorite,
-                onFavoriteClick = { onToggleFavorite(recipe, isFavorite) },
+                isFavorite = recipe.isFavorite,
+                onFavoriteClick = { onToggleFavorite(recipe, recipe.isFavorite) },
                 onClick = { onRecipeClick(recipe) }
             )
         }
@@ -234,6 +226,7 @@ private val PreviewRecipe = Recipe(
     ingredients = listOf("Pasta", "Eggs", "Pancetta", "Cheese"),
     instructions = listOf("Boil pasta", "Fry pancetta", "Mix eggs and cheese"),
     duration = "25 min",
+    isFavorite = false,
     imageUrl = ""
 )
 
@@ -247,11 +240,10 @@ private fun PreviewContent_Suggestions() {
             showFavorites = false,
             recipes = listOf(
                 PreviewRecipe,
-                PreviewRecipe.copy(id = 2, title = "Tomato Basil Soup"),
+                PreviewRecipe.copy(id = 2, title = "Tomato Basil Soup", isFavorite = true),
                 PreviewRecipe.copy(id = 3, title = "Grilled Cheese")
             ),
             favorites = emptyList(),
-            favoriteIds = setOf(1),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -270,10 +262,9 @@ private fun PreviewContent_Favorites() {
             showFavorites = true,
             recipes = emptyList(),
             favorites = listOf(
-                PreviewRecipe.copy(id = 4, title = "My Favorite Burger"),
-                PreviewRecipe.copy(id = 5, title = "Mom's Lasagna")
+                PreviewRecipe.copy(id = 4, title = "My Favorite Burger", isFavorite = true),
+                PreviewRecipe.copy(id = 5, title = "Mom's Lasagna", isFavorite = true)
             ),
-            favoriteIds = setOf(4, 5),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -292,7 +283,6 @@ private fun PreviewContent_Empty() {
             showFavorites = false,
             recipes = emptyList(),
             favorites = emptyList(),
-            favoriteIds = emptySet(),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -311,7 +301,6 @@ private fun PreviewContent_Loading() {
             showFavorites = false,
             recipes = emptyList(),
             favorites = emptyList(),
-            favoriteIds = emptySet(),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},

@@ -22,9 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -55,20 +53,14 @@ fun RecipeDetailScreen(
     val uiState by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val recipe = uiState.selectedRecipe ?: return
 
-    val isFavorite by remember(uiState.favorites, recipe.id) {
-        derivedStateOf {
-            uiState.favorites.any { it.id == recipe.id }
-        }
-    }
-
     RecipeSideEffectHandler(viewModel)
 
     Content(
         recipe = recipe,
-        isFavorite = isFavorite,
+        isFavorite = recipe.isFavorite,
         onBack = onBack,
         onToggleFavorite = {
-            viewModel.onFavoriteClicked(recipe, isFavorite)
+            viewModel.onFavoriteClicked(recipe, recipe.isFavorite)
         }
     )
 }
@@ -288,7 +280,8 @@ private fun ContentPreview() {
                     "Immediately add the hot spaghetti to the skillet with the pancetta. Toss to combine. Pour the egg and cheese mixture over the pasta, stirring quickly to create a creamy sauce. If the sauce is too thick, add a little of the reserved pasta water until it reaches your desired consistency.",
                     "Season with salt if needed. Serve immediately, garnished with extra grated cheese and fresh parsley."
                 ),
-                imageUrl = ""
+                imageUrl = "",
+                isFavorite = true
             ),
             isFavorite = true,
             onBack = {},

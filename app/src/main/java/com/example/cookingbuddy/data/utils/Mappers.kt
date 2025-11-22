@@ -12,6 +12,7 @@ fun RecipeResponse.entityToDomain(): Recipe {
         instructions = this.instructions,
         imageUrl = this.imageUrl,
         duration = this.duration,
+        isFavorite = false
     )
 }
 
@@ -23,6 +24,7 @@ fun RecipeEntity.responseToDomain(): Recipe {
         instructions = this.instructions,
         imageUrl = this.imageUrl,
         duration = this.duration,
+        isFavorite = true
     )
 }
 

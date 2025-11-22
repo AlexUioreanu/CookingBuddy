@@ -32,6 +32,12 @@ android {
         }
     }
 
+    val secretsProperties = Properties()
+    val secretsFile = rootProject.file("secrets.properties")
+    if (secretsFile.exists()) {
+        secretsProperties.load(FileInputStream(secretsFile))
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -39,48 +45,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField(
-                "String",
-                "GEMINI_API_KEY",
-                "\"${localProperties.getProperty("GEMINI_API_KEY")}\""
-            )
-            buildConfigField(
-                "String",
-                "FAL_API_KEY",
-                "\"${localProperties.getProperty("FAL_API_KEY")}\""
-            )
-            buildConfigField(
-                "String",
-                "FAL_API_BASE_URL",
-                "\"${localProperties.getProperty("FAL_API_BASE_URL")}\""
-            )
-            buildConfigField(
-                "String",
-                "LOREM_FLICKR_URL",
-                "\"${localProperties.getProperty("LOREM_FLICKR_URL")}\""
-            )
+            buildConfigField("String", "GEMINI_API_KEY", "\"${secretsProperties.getProperty("GEMINI_API_KEY")}\"")
+            buildConfigField("String", "FAL_API_KEY", "\"${secretsProperties.getProperty("FAL_API_KEY")}\"")
+            buildConfigField("String", "FAL_API_BASE_URL", "\"${secretsProperties.getProperty("FAL_API_BASE_URL")}\"")
+            buildConfigField("String", "LOREM_FLICKR_URL", "\"${secretsProperties.getProperty("LOREM_FLICKR_URL")}\"")
         }
         debug {
-            buildConfigField(
-                "String",
-                "GEMINI_API_KEY",
-                "\"${localProperties.getProperty("GEMINI_API_KEY")}\""
-            )
-            buildConfigField(
-                "String",
-                "FAL_API_KEY",
-                "\"${localProperties.getProperty("FAL_API_KEY")}\""
-            )
-            buildConfigField(
-                "String",
-                "FAL_API_BASE_URL",
-                "\"${localProperties.getProperty("FAL_API_BASE_URL")}\""
-            )
-            buildConfigField(
-                "String",
-                "LOREM_FLICKR_URL",
-                "\"${localProperties.getProperty("LOREM_FLICKR_URL")}\""
-            )
+            buildConfigField("String", "GEMINI_API_KEY", "\"${secretsProperties.getProperty("GEMINI_API_KEY")}\"")
+            buildConfigField("String", "FAL_API_KEY", "\"${secretsProperties.getProperty("FAL_API_KEY")}\"")
+            buildConfigField("String", "FAL_API_BASE_URL", "\"${secretsProperties.getProperty("FAL_API_BASE_URL")}\"")
+            buildConfigField("String", "LOREM_FLICKR_URL", "\"${secretsProperties.getProperty("LOREM_FLICKR_URL")}\"")
         }
     }
     compileOptions {

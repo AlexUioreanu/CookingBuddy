@@ -19,7 +19,7 @@ data class RecipeState(
     val showFavorites: Boolean = false,
     val recipes: List<Recipe> = emptyList(),
     val favorites: List<Recipe> = emptyList(),
-    val favoriteIds: List<Int> = emptyList()
+    val favoriteIds: Set<Int> = emptySet()
 )
 
 class RecipeViewModel(
@@ -42,7 +42,7 @@ class RecipeViewModel(
                 state.copy(
                     favorites = favoriteRecipes,
                     loading = false,
-                    favoriteIds = favoriteRecipes.map { it.id },
+                    favoriteIds = favoriteRecipes.map { it.id }.toSet(),
                     showFavorites = state.query.isEmpty() && favoriteRecipes.isNotEmpty()
                 )
             }

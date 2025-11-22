@@ -75,7 +75,7 @@ private fun Content(
     showFavorites: Boolean,
     recipes: List<Recipe>,
     favorites: List<Recipe>,
-    favoriteIds: List<Int>,
+    favoriteIds: Set<Int>,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onRecipeClick: (Recipe) -> Unit,
@@ -113,7 +113,7 @@ private fun RecipeListContent(
     showFavorites: Boolean,
     favorites: List<Recipe>,
     recipes: List<Recipe>,
-    favoriteIds: List<Int>,
+    favoriteIds: Set<Int>,
     onRecipeClick: (Recipe) -> Unit,
     onToggleFavorite: (Recipe, Boolean) -> Unit,
     onSearch: () -> Unit
@@ -170,7 +170,7 @@ private fun LazyListScope.favoritesSection(
 
 private fun LazyListScope.suggestionsSection(
     recipes: List<Recipe>,
-    favoriteIds: List<Int>,
+    favoriteIds: Set<Int>,
     onRecipeClick: (Recipe) -> Unit,
     onToggleFavorite: (Recipe, Boolean) -> Unit,
     onNewSuggestions: () -> Unit
@@ -251,7 +251,7 @@ private fun PreviewContent_Suggestions() {
                 PreviewRecipe.copy(id = 3, title = "Grilled Cheese")
             ),
             favorites = emptyList(),
-            favoriteIds = listOf(1),
+            favoriteIds = setOf(1),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -273,7 +273,7 @@ private fun PreviewContent_Favorites() {
                 PreviewRecipe.copy(id = 4, title = "My Favorite Burger"),
                 PreviewRecipe.copy(id = 5, title = "Mom's Lasagna")
             ),
-            favoriteIds = listOf(4, 5),
+            favoriteIds = setOf(4, 5),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -292,7 +292,7 @@ private fun PreviewContent_Empty() {
             showFavorites = false,
             recipes = emptyList(),
             favorites = emptyList(),
-            favoriteIds = emptyList(),
+            favoriteIds = emptySet(),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},
@@ -311,7 +311,7 @@ private fun PreviewContent_Loading() {
             showFavorites = false,
             recipes = emptyList(),
             favorites = emptyList(),
-            favoriteIds = emptyList(),
+            favoriteIds = emptySet(),
             onQueryChange = {},
             onSearch = {},
             onRecipeClick = {},

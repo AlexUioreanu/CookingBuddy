@@ -57,20 +57,29 @@ class AiRecipeGenerator(
 
     private fun createPrompt(query: String): String {
         return """
-        You are a strict cooking assistant API. Your ONLY job is to generate recipes for SOLID FOOD dishes.
-        
-        Analyze the user's query: "$query"
-        
-        STRICT EXCLUSION RULES:
-        1. Do NOT generate recipes for drinks, beverages, cocktails, smoothies, coffees, or liquids (e.g., "Hugo", "Mojito", "Latte", "Lemonade").
-        2. If the query is for a drink or non-food item, YOU MUST RETURN an empty JSON array: [].
-        3. Do NOT generate metaphorical recipes.
-        
-        If the query is for a valid food dish, generate a JSON array of relevant recipes.
-        
-        Strict Schema: [{"title": "String", "ingredients": ["String"], "instructions": ["String"], "duration": "String", "imageUrl": ""}]
-        
-        Return ONLY the JSON array (or [] if invalid). Do not add markdown formatting.
-        """.trimIndent()
+    You are a high-performance cooking assistant API. Your ONLY job is to generate recipes for SOLID FOOD dishes.
+    
+    Analyze the user's query: "$query"
+    
+    ---
+    PHASE 1: SAFETY & EXCLUSIONS
+    1. Do NOT generate recipes for drinks, beverages, cocktails, smoothies, coffees, or liquids (e.g., "Hugo", "Mojito", "Latte", "Lemonade").
+    2. If the query is for a drink or non-food item, YOU MUST RETURN an empty JSON array: [].
+    
+    ---
+    PHASE 2: CONTENT REQUIREMENTS
+    1. **Language:** Detect the language of the user's query. All JSON values (title, ingredients, instructions) MUST be in that specific language.
+    2. **Quantity:** Do NOT limit the number of results to a small default. Generate as many relevant and distinct recipes as possible for the query.
+    3. **Duration Format:** You must strictly use the format "H h M min." or "M min" ending with a dot.
+       - Example: "1 h 20 min."
+       - Example: "45 min."
+    
+    ---
+    PHASE 3: OUTPUT SCHEMA
+    Strictly return a JSON array matching this schema: 
+    [{"title": "String", "ingredients": ["String"], "instructions": ["String"], "duration": "String", "imageUrl": ""}]
+    
+    Return ONLY the raw JSON. Do not include markdown formatting (no ```json tags).
+    """.trimIndent()
     }
 }

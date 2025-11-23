@@ -18,16 +18,24 @@ class AiRecipeGenerator(
     suspend fun generateRecipes(query: String): List<RecipeResponse> {
         val prompt = createPrompt(query)
 
-        val response = generativeModel.generateContent(prompt)
+        val response = try {
+            generativeModel.generateContent(prompt)
+        } catch (e: Exception) {
+            Log.e("Gemini", "Network/API Error", e)
+            return emptyList()
+        }
 
-        val cleanJson = extractJsonArray(
-            response.text ?: throw IllegalStateException("Gemini returned empty or null content.")
-        )
+        val responseText = response.text ?: return emptyList()
+        val cleanJson = extractJsonArray(responseText)
 
         val recipes = try {
             jsonParser.decodeFromString<List<RecipeResponse>>(cleanJson)
         } catch (e: Exception) {
             Log.e("Gemini", "Failed to parse recipe JSON", e)
+            return emptyList()
+        }
+
+        if (recipes.isEmpty()) {
             return emptyList()
         }
 
@@ -49,11 +57,20 @@ class AiRecipeGenerator(
 
     private fun createPrompt(query: String): String {
         return """
-        You are a recipe API. Generate a JSON array of all highly relevant recipes found for: "$query".
+        You are a strict cooking assistant API. Your ONLY job is to generate recipes for SOLID FOOD dishes.
+        
+        Analyze the user's query: "$query"
+        
+        STRICT EXCLUSION RULES:
+        1. Do NOT generate recipes for drinks, beverages, cocktails, smoothies, coffees, or liquids (e.g., "Hugo", "Mojito", "Latte", "Lemonade").
+        2. If the query is for a drink or non-food item, YOU MUST RETURN an empty JSON array: [].
+        3. Do NOT generate metaphorical recipes.
+        
+        If the query is for a valid food dish, generate a JSON array of relevant recipes.
+        
         Strict Schema: [{"title": "String", "ingredients": ["String"], "instructions": ["String"], "duration": "String", "imageUrl": ""}]
-        Return ONLY the JSON array.
-        Format duration example: 1 h 20 min and a '.' at the end of duration
-        DO NOT limit the count. Generate as many relevant recipes as possible.
+        
+        Return ONLY the JSON array (or [] if invalid). Do not add markdown formatting.
         """.trimIndent()
     }
 }

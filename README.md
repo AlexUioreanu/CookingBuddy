@@ -23,7 +23,8 @@
 <!-- Add your screenshots here! Create a 'screenshots' folder in your project root. -->
 | Home Screen                                     | Recipe Detail                                       |
 | ----------------------------------------------- | --------------------------------------------------- |
-| <img src="./screenshots/home.png" width="250">  | <img src="./screenshots/detail.png" width="250">    |
+| <img width="250" alt="Screenshot_20251124_143304" src="https://github.com/user-attachments/assets/62e1f4be-7e2c-4e92-bc50-39227b4300b5" /> | <img width="250"  alt="Screenshot_20251124_143422" src="https://github.com/user-attachments/assets/475b62f8-41bf-467d-8965-ef04682f943b" />   |
+
 
 ## 🛠 Tech Stack & Architecture
 

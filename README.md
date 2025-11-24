@@ -1,13 +1,13 @@
-<p align="center">
-<h1 align="center">Cooking Buddy</h1><img  width="200" alt="Cooking Buddy Logo" src="https://github.com/user-attachments/assets/cc29593b-ee3d-4404-9710-76c7f5df81d2" />
-</p>
+<div align="center">
+  <h1>Cooking Buddy</h1>
+  
+  <img width="200" alt="Cooking Buddy Logo" src="https://github.com/user-attachments/assets/cc29593b-ee3d-4404-9710-76c7f5df81d2" />
 
-
-
-
-<p align="center">
-  An intelligent recipe generator and cookbook app built with the latest Android technologies. Discover, generate, and save your favorite recipes, all powered by AI.
-</p>
+  <p>
+    An intelligent recipe generator and cookbook app built with the latest Android technologies. <br>
+    Discover, generate, and save your favorite recipes, all powered by AI.
+  </p>
+</div>
 
 ## ✨ Features
 

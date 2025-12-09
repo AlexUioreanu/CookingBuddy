@@ -10,6 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+      FAL_API_BASE_URL: ${{ secrets.FAL_API_BASE_URL }}
+      LOREM_FLICKR_URL: ${{ secrets.LOREM_FLICKR_URL }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -22,11 +28,3 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      - name: Build with Gradle
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
-          FAL_API_BASE_URL: ${{ secrets.FAL_API_BASE_URL }}
-          LOREM_FLICKR_URL: ${{ secrets.LOREM_FLICKR_URL }}
-        run: ./gradlew assembleDebug --stacktrace

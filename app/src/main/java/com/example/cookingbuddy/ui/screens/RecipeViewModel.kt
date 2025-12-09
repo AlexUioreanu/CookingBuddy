@@ -10,6 +10,7 @@ import com.example.cookingbuddy.domain.usecase.RemoveFavoriteUseCase
 import com.example.cookingbuddy.ui.utils.ResourcesProvider
 import kotlinx.coroutines.flow.collectLatest
 import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.blockingIntent
 import org.orbitmvi.orbit.viewmodel.container
 
 data class RecipeState(
@@ -73,8 +74,8 @@ class RecipeViewModel(
         }
     }
 
-    fun onSearch() = intent {
-        if (state.query.isBlank()) return@intent
+    fun onSearch() = blockingIntent {
+        if (state.query.isBlank()) return@blockingIntent
 
         reduce {
             state.copy(

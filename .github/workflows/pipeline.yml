@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: myenvironment
 
     steps:
       - uses: actions/checkout@v4
@@ -25,24 +26,13 @@ jobs:
 
       - name: Create local.properties
         env:
-          # Try getting all values from SECRETS (most common configuration)
+          # Use secrets for ALL sensitive data and configuration
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
-          FAL_API_BASE_URL: ${{ secrets.FAL_API_BASE_URL }}
-          LOREM_FLICKR_URL: ${{ secrets.LOREM_FLICKR_URL }}
         run: |
-          echo "Creating local.properties..."
           touch local.properties
-          
-          # Write secrets to file
           echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> local.properties
           echo "FAL_API_KEY=$FAL_API_KEY" >> local.properties
-          echo "FAL_API_BASE_URL=$FAL_API_BASE_URL" >> local.properties
-          echo "LOREM_FLICKR_URL=$LOREM_FLICKR_URL" >> local.properties
-          
-          echo "Done. File content (secrets masked):"
-          cat local.properties
 
       - name: Build with Gradle
-        # The build will now read from the local.properties file created above
         run: ./gradlew assembleDebug --stacktrace

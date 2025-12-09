@@ -44,7 +44,7 @@ android {
             ?: "" // 3. Fallback (gol)
     }
 
-    val geminiApiKey = getApiKey("Gemini_api_key")
+    val geminiApiKey = getApiKey("GEMINI_API_KEY")
     val falApiKey = getApiKey("FAL_API_KEY")
     val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
     val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")

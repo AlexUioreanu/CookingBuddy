@@ -26,4 +26,7 @@ jobs:
       - name: Build with Gradle
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+          FAL_API_BASE_URL: ${{ secrets.FAL_API_BASE_URL }}
+          LOREM_FLICKR_URL: ${{ secrets.LOREM_FLICKR_URL }}
         run: ./gradlew assembleDebug --stacktrace

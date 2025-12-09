@@ -1,6 +1,7 @@
 package com.example.cookingbuddy
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +34,14 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+        
+        // Keys are now available via BuildConfig
+        val geminiApiKey = BuildConfig.GEMINI_API_KEY
+        Log.d("MainActivity", "Gemini API Key: $geminiApiKey")
+        
+        val falApiKey = BuildConfig.FAL_API_KEY
+        val falApiBaseUrl = BuildConfig.FAL_API_BASE_URL
+        val loremFlickrUrl = BuildConfig.LOREM_FLICKR_URL
     }
 }
 

@@ -38,6 +38,17 @@ android {
         secretsProperties.load(FileInputStream(secretsFile))
     }
 
+    fun getApiKey(keyName: String): String {
+        return System.getenv(keyName) // 1. Încearcă din Environment (GitHub Actions)
+            ?: secretsProperties.getProperty(keyName) // 2. Încearcă din fișier local
+            ?: "" // 3. Fallback (gol)
+    }
+
+    val geminiApiKey = getApiKey("Gemini_api_key")
+    val falApiKey = getApiKey("FAL_API_KEY")
+    val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
+    val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -45,16 +56,24 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "GEMINI_API_KEY", "\"${secretsProperties.getProperty("GEMINI_API_KEY")}\"")
-            buildConfigField("String", "FAL_API_KEY", "\"${secretsProperties.getProperty("FAL_API_KEY")}\"")
-            buildConfigField("String", "FAL_API_BASE_URL", "\"${secretsProperties.getProperty("FAL_API_BASE_URL")}\"")
-            buildConfigField("String", "LOREM_FLICKR_URL", "\"${secretsProperties.getProperty("LOREM_FLICKR_URL")}\"")
+
+            // Nu printa cheia reală! Doar lungimea.
+            if (geminiApiKey.isEmpty()) {
+                println("⚠️ WARNING: GEMINI_API_KEY is empty in build config!")
+            } else {
+                println("✅ GEMINI_API_KEY found (length: ${geminiApiKey.length})")
+            }
+
+            buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+            buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
+            buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
+            buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
         }
         debug {
-            buildConfigField("String", "GEMINI_API_KEY", "\"${secretsProperties.getProperty("GEMINI_API_KEY")}\"")
-            buildConfigField("String", "FAL_API_KEY", "\"${secretsProperties.getProperty("FAL_API_KEY")}\"")
-            buildConfigField("String", "FAL_API_BASE_URL", "\"${secretsProperties.getProperty("FAL_API_BASE_URL")}\"")
-            buildConfigField("String", "LOREM_FLICKR_URL", "\"${secretsProperties.getProperty("LOREM_FLICKR_URL")}\"")
+            buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+            buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
+            buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
+            buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
         }
     }
     compileOptions {

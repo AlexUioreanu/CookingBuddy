@@ -1,3 +1,4 @@
+import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -8,56 +9,54 @@ plugins {
     alias(libs.plugins.google.ksp)
 }
 
-// 1. Load local.properties (Standard Android file for local dev)
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { localProperties.load(it) }
-}
-
-// 2. Load secrets.properties (Custom file for local secrets)
-val secretsProperties = Properties()
-val secretsFile = rootProject.file("secrets.properties")
-if (secretsFile.exists()) {
-    secretsFile.inputStream().use { secretsProperties.load(it) }
-}
-
-// 3. Robust Key Retrieval Function
-fun getApiKey(keyName: String): String {
-    // Priority 1: System Environment Variables (Best for CI/CD)
-    // GitHub Actions 'env' block maps secrets to these variables.
-    val envVar = System.getenv(keyName)
-    if (!envVar.isNullOrEmpty()) {
-        println("✅ [Config] Found $keyName in Environment Variables.")
-        return envVar
+// Helper function to read from local.properties
+fun getPropValueFromLocalProperties(key: String): String {
+    val propertiesFile = rootProject.file("local.properties")
+    if (propertiesFile.exists()) {
+        val properties = Properties()
+        FileInputStream(propertiesFile).use { inputStream ->
+            properties.load(inputStream)
+        }
+        val value = properties.getProperty(key)
+        if (value != null) {
+            return value
+        }
     }
-
-    // Priority 2: local.properties (Best for Local Android Dev)
-    val localVar = localProperties.getProperty(keyName)
-    if (!localVar.isNullOrEmpty()) {
-        println("✅ [Config] Found $keyName in local.properties.")
-        return localVar
-    }
-
-    // Priority 3: secrets.properties (Legacy/Custom Local Dev)
-    val secretVar = secretsProperties.getProperty(keyName)
-    if (!secretVar.isNullOrEmpty()) {
-        println("✅ [Config] Found $keyName in secrets.properties.")
-        return secretVar
-    }
-
-    // Priority 4: Gradle Properties (Command Line -P or gradle.properties)
-    val gradleProp = providers.gradleProperty(keyName).orNull
-    if (!gradleProp.isNullOrEmpty()) {
-        println("✅ [Config] Found $keyName in Gradle Properties.")
-        return gradleProp
-    }
-
-    println("⚠️ [Config] Could NOT find $keyName in Env, local.properties, or Gradle properties.")
     return ""
 }
 
-// 4. Retrieve keys with logging
+// Robust Key Retrieval Function
+fun getApiKey(keyName: String): String {
+    var value = ""
+    
+    // 1. Try local.properties
+    val localVal = getPropValueFromLocalProperties(keyName)
+    if (localVal.isNotEmpty()) {
+        println("✅ [Config] Found $keyName in local.properties")
+        value = localVal
+    } else {
+        // 2. Fallback: Environment Variables
+        val envVar = System.getenv(keyName)
+        if (!envVar.isNullOrEmpty()) {
+            println("✅ [Config] Found $keyName in Environment Variables")
+            value = envVar
+        }
+    }
+
+    if (value.isEmpty()) {
+        println("⚠️ [Config] Could NOT find $keyName")
+        return ""
+    }
+
+    // SANITIZATION: Remove surrounding quotes if present
+    // This fixes issues where secrets are defined as "VALUE" in GitHub or properties
+    if (value.length >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+        println("⚠️ [Config] Removing surrounding quotes from $keyName")
+        value = value.substring(1, value.length - 1)
+    }
+    return value
+}
+
 println("--- Configuring Build Config Keys ---")
 val geminiApiKey = getApiKey("GEMINI_API_KEY")
 val falApiKey = getApiKey("FAL_API_KEY")
@@ -82,7 +81,7 @@ android {
         }
 
         // Inject keys into BuildConfig
-        // Note: We wrap in quotes escaped with backslashes
+        // We use string interpolation with escaped quotes
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
         buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
         buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
@@ -179,5 +178,10 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+task("testMethod")  {
+    doLast {
+        println("${getApiKey("GEMINI_API_KEY")}")
     }
 }

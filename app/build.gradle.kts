@@ -9,11 +9,39 @@ plugins {
     alias(libs.plugins.google.ksp)
 }
 
+// 1. Load local.properties (Standard Android file)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
+
+// 2. Load secrets.properties (Custom file for local secrets)
+val secretsProperties = Properties()
+val secretsFile = rootProject.file("secrets.properties")
+if (secretsFile.exists()) {
+    secretsProperties.load(FileInputStream(secretsFile))
+}
+
+// 3. Helper function to extract API keys safely
+fun getApiKey(keyName: String): String {
+    // Priority 1: System Environment (GitHub Actions / CI)
+    val envVar = System.getenv(keyName)
+    if (!envVar.isNullOrEmpty()) return envVar
+    
+    // Priority 2: secrets.properties (Local Development)
+    val propVar = secretsProperties.getProperty(keyName)
+    if (!propVar.isNullOrEmpty()) return propVar
+    
+    // Priority 3: Fallback
+    return ""
+}
+
+// 4. Retrieve keys (Top-level scope to ensure availability)
+val geminiApiKey = getApiKey("GEMINI_API_KEY").ifEmpty { getApiKey("Gemini_api_key") }
+val falApiKey = getApiKey("FAL_API_KEY")
+val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
+val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")
 
 android {
     namespace = "com.example.cookingbuddy"
@@ -30,24 +58,13 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-    }
 
-    val secretsProperties = Properties()
-    val secretsFile = rootProject.file("secrets.properties")
-    if (secretsFile.exists()) {
-        secretsProperties.load(FileInputStream(secretsFile))
+        // Inject keys into BuildConfig
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
+        buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
+        buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
     }
-
-    fun getApiKey(keyName: String): String {
-        return System.getenv(keyName) // 1. Încearcă din Environment (GitHub Actions)
-            ?: secretsProperties.getProperty(keyName) // 2. Încearcă din fișier local
-            ?: "" // 3. Fallback (gol)
-    }
-
-    val geminiApiKey = getApiKey("GEMINI_API_KEY")
-    val falApiKey = getApiKey("FAL_API_KEY")
-    val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
-    val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")
 
     buildTypes {
         release {
@@ -56,24 +73,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            // Nu printa cheia reală! Doar lungimea.
+            // Log warning if key is missing (do not log actual key)
             if (geminiApiKey.isEmpty()) {
-                println("⚠️ WARNING: GEMINI_API_KEY is empty in build config!")
-            } else {
-                println("✅ GEMINI_API_KEY found (length: ${geminiApiKey.length})")
+                println("⚠️ WARNING: GEMINI_API_KEY is empty!")
             }
-
-            buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
-            buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
-            buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
-            buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
         }
         debug {
-            buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
-            buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
-            buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
-            buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
+            if (geminiApiKey.isEmpty()) {
+                println("⚠️ WARNING: GEMINI_API_KEY is empty!")
+            }
         }
     }
     compileOptions {
@@ -96,6 +104,7 @@ kotlin {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
+
 dependencies {
     // Android Core
     implementation(libs.androidx.core.ktx)

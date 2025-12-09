@@ -31,8 +31,8 @@ jobs:
           FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
         run: |
           touch local.properties
-          echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> local.properties
-          echo "FAL_API_KEY=$FAL_API_KEY" >> local.properties
+          echo GEMINI_API_KEY=\"$GEMINI_API_KEY\" > ./local.properties
+          echo FAL_API_KEY=\"$FAL_API_KEY\" > ./local.properties
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug --stacktrace

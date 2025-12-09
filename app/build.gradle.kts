@@ -8,8 +8,7 @@ plugins {
     alias(libs.plugins.google.ksp)
 }
 
-// 1. Load local.properties (Standard Android file)
-// This file is automatically created by the CI pipeline with secrets.
+// 1. Load local.properties (Standard Android file for local dev)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -23,30 +22,48 @@ if (secretsFile.exists()) {
     secretsFile.inputStream().use { secretsProperties.load(it) }
 }
 
-// 3. Helper function to extract API keys safely
+// 3. Robust Key Retrieval Function
 fun getApiKey(keyName: String): String {
-    // Priority 1: local.properties (CI & Local Overrides)
-    // In CI, we generate this file with the secrets.
-    val localVar = localProperties.getProperty(keyName)
-    if (!localVar.isNullOrEmpty()) return localVar
-
-    // Priority 2: System Environment (Alternative CI)
+    // Priority 1: System Environment Variables (Best for CI/CD)
+    // GitHub Actions 'env' block maps secrets to these variables.
     val envVar = System.getenv(keyName)
-    if (!envVar.isNullOrEmpty()) return envVar
+    if (!envVar.isNullOrEmpty()) {
+        println("✅ [Config] Found $keyName in Environment Variables.")
+        return envVar
+    }
 
-    // Priority 3: secrets.properties (Local Development)
-    val propVar = secretsProperties.getProperty(keyName)
-    if (!propVar.isNullOrEmpty()) return propVar
-    
-    // Priority 4: Fallback
+    // Priority 2: local.properties (Best for Local Android Dev)
+    val localVar = localProperties.getProperty(keyName)
+    if (!localVar.isNullOrEmpty()) {
+        println("✅ [Config] Found $keyName in local.properties.")
+        return localVar
+    }
+
+    // Priority 3: secrets.properties (Legacy/Custom Local Dev)
+    val secretVar = secretsProperties.getProperty(keyName)
+    if (!secretVar.isNullOrEmpty()) {
+        println("✅ [Config] Found $keyName in secrets.properties.")
+        return secretVar
+    }
+
+    // Priority 4: Gradle Properties (Command Line -P or gradle.properties)
+    val gradleProp = providers.gradleProperty(keyName).orNull
+    if (!gradleProp.isNullOrEmpty()) {
+        println("✅ [Config] Found $keyName in Gradle Properties.")
+        return gradleProp
+    }
+
+    println("⚠️ [Config] Could NOT find $keyName in Env, local.properties, or Gradle properties.")
     return ""
 }
 
-// 4. Retrieve keys (Top-level scope to ensure availability)
-val geminiApiKey = getApiKey("GEMINI_API_KEY").ifEmpty { getApiKey("Gemini_api_key") }
+// 4. Retrieve keys with logging
+println("--- Configuring Build Config Keys ---")
+val geminiApiKey = getApiKey("GEMINI_API_KEY")
 val falApiKey = getApiKey("FAL_API_KEY")
 val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
 val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")
+println("-------------------------------------")
 
 android {
     namespace = "com.example.cookingbuddy"
@@ -65,6 +82,7 @@ android {
         }
 
         // Inject keys into BuildConfig
+        // Note: We wrap in quotes escaped with backslashes
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
         buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
         buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
@@ -78,14 +96,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (geminiApiKey.isEmpty()) {
-                println("⚠️ WARNING: GEMINI_API_KEY is empty in RELEASE build!")
-            }
         }
         debug {
-            if (geminiApiKey.isEmpty()) {
-                println("⚠️ WARNING: GEMINI_API_KEY is empty in DEBUG build!")
-            }
         }
     }
     compileOptions {

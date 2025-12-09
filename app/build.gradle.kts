@@ -1,4 +1,3 @@
-import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -10,30 +9,36 @@ plugins {
 }
 
 // 1. Load local.properties (Standard Android file)
+// This file is automatically created by the CI pipeline with secrets.
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 
 // 2. Load secrets.properties (Custom file for local secrets)
 val secretsProperties = Properties()
 val secretsFile = rootProject.file("secrets.properties")
 if (secretsFile.exists()) {
-    secretsProperties.load(FileInputStream(secretsFile))
+    secretsFile.inputStream().use { secretsProperties.load(it) }
 }
 
 // 3. Helper function to extract API keys safely
 fun getApiKey(keyName: String): String {
-    // Priority 1: System Environment (GitHub Actions / CI)
+    // Priority 1: local.properties (CI & Local Overrides)
+    // In CI, we generate this file with the secrets.
+    val localVar = localProperties.getProperty(keyName)
+    if (!localVar.isNullOrEmpty()) return localVar
+
+    // Priority 2: System Environment (Alternative CI)
     val envVar = System.getenv(keyName)
     if (!envVar.isNullOrEmpty()) return envVar
-    
-    // Priority 2: secrets.properties (Local Development)
+
+    // Priority 3: secrets.properties (Local Development)
     val propVar = secretsProperties.getProperty(keyName)
     if (!propVar.isNullOrEmpty()) return propVar
     
-    // Priority 3: Fallback
+    // Priority 4: Fallback
     return ""
 }
 
@@ -73,14 +78,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Log warning if key is missing (do not log actual key)
             if (geminiApiKey.isEmpty()) {
-                println("⚠️ WARNING: GEMINI_API_KEY is empty!")
+                println("⚠️ WARNING: GEMINI_API_KEY is empty in RELEASE build!")
             }
         }
         debug {
             if (geminiApiKey.isEmpty()) {
-                println("⚠️ WARNING: GEMINI_API_KEY is empty!")
+                println("⚠️ WARNING: GEMINI_API_KEY is empty in DEBUG build!")
             }
         }
     }

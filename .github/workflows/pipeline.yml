@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: myenvironment
 
     steps:
       - uses: actions/checkout@v4
@@ -26,13 +25,17 @@ jobs:
 
       - name: Create local.properties
         env:
-          # Use secrets for ALL sensitive data and configuration
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+          FAL_API_BASE_URL: ${{ vars.FAL_API_BASE_URL }}
+          LOREM_FLICKR_URL: ${{ vars.LOREM_FLICKR_URL }}
         run: |
           touch local.properties
           echo GEMINI_API_KEY=\"$GEMINI_API_KEY\" > ./local.properties
           echo FAL_API_KEY=\"$FAL_API_KEY\" > ./local.properties
+          echo FAL_API_BASE_URL=\"$FAL_API_BASE_URL\" > ./local.properties
+          echo LOREM_FLICKR_URL=\"$LOREM_FLICKR_URL\" > ./local.properties
 
       - name: Build with Gradle
+        # We do NOT pass env vars here, forcing the build to use local.properties
         run: ./gradlew assembleDebug --stacktrace

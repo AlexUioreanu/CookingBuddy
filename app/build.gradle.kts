@@ -9,60 +9,34 @@ plugins {
     alias(libs.plugins.google.ksp)
 }
 
-// Helper function to read from local.properties
-fun getPropValueFromLocalProperties(key: String): String {
-    val propertiesFile = rootProject.file("local.properties")
-    if (propertiesFile.exists()) {
-        val properties = Properties()
-        FileInputStream(propertiesFile).use { inputStream ->
+// Function to load API keys from local.properties
+// Adapted from the guide for Kotlin DSL and multiple keys
+fun getApiKey(propertyKey: String): String {
+    val propFile = rootProject.file("./local.properties")
+    val properties = Properties()
+    
+    // Only load if file exists (avoids crash during sync if file is missing)
+    if (propFile.exists()) {
+        FileInputStream(propFile).use { inputStream ->
             properties.load(inputStream)
         }
-        val value = properties.getProperty(key)
-        if (value != null) {
-            return value
-        }
-    }
-    return ""
-}
-
-// Robust Key Retrieval Function
-fun getApiKey(keyName: String): String {
-    var value = ""
-    
-    // 1. Try local.properties
-    val localVal = getPropValueFromLocalProperties(keyName)
-    if (localVal.isNotEmpty()) {
-        println("✅ [Config] Found $keyName in local.properties")
-        value = localVal
-    } else {
-        // 2. Fallback: Environment Variables
-        val envVar = System.getenv(keyName)
-        if (!envVar.isNullOrEmpty()) {
-            println("✅ [Config] Found $keyName in Environment Variables")
-            value = envVar
-        }
     }
 
+    var value = properties.getProperty(propertyKey) ?: ""
+
+    // Fallback to Environment Variables (Standard CI practice)
     if (value.isEmpty()) {
-        println("⚠️ [Config] Could NOT find $keyName")
-        return ""
+        value = System.getenv(propertyKey) ?: ""
     }
 
-    // SANITIZATION: Remove surrounding quotes if present
-    // This fixes issues where secrets are defined as "VALUE" in GitHub or properties
+    // SANITIZATION: The blog post example and CI often add quotes (e.g., KEY="123")
+    // We must remove them so we don't end up with "\"123\"" in Java code.
     if (value.length >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
-        println("⚠️ [Config] Removing surrounding quotes from $keyName")
         value = value.substring(1, value.length - 1)
     }
+
     return value
 }
-
-println("--- Configuring Build Config Keys ---")
-val geminiApiKey = getApiKey("GEMINI_API_KEY")
-val falApiKey = getApiKey("FAL_API_KEY")
-val falApiBaseUrl = getApiKey("FAL_API_BASE_URL")
-val loremFlickrUrl = getApiKey("LOREM_FLICKR_URL")
-println("-------------------------------------")
 
 android {
     namespace = "com.example.cookingbuddy"
@@ -80,12 +54,12 @@ android {
             useSupportLibrary = true
         }
 
-        // Inject keys into BuildConfig
-        // We use string interpolation with escaped quotes
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
-        buildConfigField("String", "FAL_API_KEY", "\"$falApiKey\"")
-        buildConfigField("String", "FAL_API_BASE_URL", "\"$falApiBaseUrl\"")
-        buildConfigField("String", "LOREM_FLICKR_URL", "\"$loremFlickrUrl\"")
+        // Inject keys into BuildConfig using the helper function
+        // Note: We explicitly wrap the value in quotes for Java String literal
+        buildConfigField("String", "GEMINI_API_KEY", "\"${getApiKey("GEMINI_API_KEY")}\"")
+        buildConfigField("String", "FAL_API_KEY", "\"${getApiKey("FAL_API_KEY")}\"")
+        buildConfigField("String", "FAL_API_BASE_URL", "\"${getApiKey("FAL_API_BASE_URL")}\"")
+        buildConfigField("String", "LOREM_FLICKR_URL", "\"${getApiKey("LOREM_FLICKR_URL")}\"")
     }
 
     buildTypes {
@@ -178,10 +152,5 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-task("testMethod")  {
-    doLast {
-        println("${getApiKey("GEMINI_API_KEY")}")
     }
 }

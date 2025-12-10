@@ -10,12 +10,12 @@ plugins {
 }
 
 // Function to load API keys from local.properties
-// Adapted from the guide for Kotlin DSL and multiple keys
+// Strictly following the blog post approach: File -> Properties
+// This ensures that for CI, we rely 100% on the local.properties file we generated.
 fun getApiKey(propertyKey: String): String {
     val propFile = rootProject.file("./local.properties")
     val properties = Properties()
     
-    // Only load if file exists (avoids crash during sync if file is missing)
     if (propFile.exists()) {
         FileInputStream(propFile).use { inputStream ->
             properties.load(inputStream)
@@ -24,13 +24,8 @@ fun getApiKey(propertyKey: String): String {
 
     var value = properties.getProperty(propertyKey) ?: ""
 
-    // Fallback to Environment Variables (Standard CI practice)
-    if (value.isEmpty()) {
-        value = System.getenv(propertyKey) ?: ""
-    }
-
-    // SANITIZATION: The blog post example and CI often add quotes (e.g., KEY="123")
-    // We must remove them so we don't end up with "\"123\"" in Java code.
+    // SANITIZATION: Remove quotes added by the CI script (echo KEY=\"VAL\")
+    // This prevents syntax errors in BuildConfig like """"
     if (value.length >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
         value = value.substring(1, value.length - 1)
     }
@@ -54,8 +49,7 @@ android {
             useSupportLibrary = true
         }
 
-        // Inject keys into BuildConfig using the helper function
-        // Note: We explicitly wrap the value in quotes for Java String literal
+        // Inject keys into BuildConfig
         buildConfigField("String", "GEMINI_API_KEY", "\"${getApiKey("GEMINI_API_KEY")}\"")
         buildConfigField("String", "FAL_API_KEY", "\"${getApiKey("FAL_API_KEY")}\"")
         buildConfigField("String", "FAL_API_BASE_URL", "\"${getApiKey("FAL_API_BASE_URL")}\"")
